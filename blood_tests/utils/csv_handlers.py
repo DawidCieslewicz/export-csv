@@ -17,7 +17,7 @@ class BloodTestHandler:
     def __init__(self, blood_test_file) -> None:
         self.blood_test_file = blood_test_file
 
-    def get_dataframe(self, file) -> pd.DataFrame:
+    def get_dataframe(self) -> pd.DataFrame:
         """
 
         Generate and return dataframe from csv file
@@ -28,15 +28,14 @@ class BloodTestHandler:
         Returns:
             pd.DataFrame: dataframe object
         """
-        file_path = file
+        file_path = self.blood_test_file
         df = pd.read_csv(
             file_path,
             sep=";",
         )
-        print(df)
         return df
 
-    def df_convert(self, file) -> dict:
+    def df_convert(self) -> dict:
         """
         Creates a dict with patient id as key and list of results as value
 
@@ -46,7 +45,7 @@ class BloodTestHandler:
         Returns:
             dict:
         """
-        data = self.get_dataframe(file)
+        data = self.get_dataframe()
 
         user_tests_dict = {}
         for row_dict in data.to_dict(orient="records"):
@@ -61,8 +60,8 @@ class BloodTestHandler:
                 user_tests_dict[current_user].append(row_dict)
         return user_tests_dict
 
-    def handle_request(self, file):
-        for patient_id, results_list in self.df_convert(file).items():
+    def handle_request(self):
+        for patient_id, results_list in self.df_convert().items():
 
             url = "https://bloodlab-demo.appspot.com/v1/diagnosis/"
             headers = {
@@ -104,5 +103,3 @@ class BloodTestHandler:
                     request_sent=json_data,
                     response_data=str(r.content),
                 )
-            print(r.elapsed.total_seconds())
-            print(r.status_code)
