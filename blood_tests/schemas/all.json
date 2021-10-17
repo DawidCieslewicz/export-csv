@@ -1,0 +1,25 @@
+{
+  "oneOf": [
+    {
+      "$ref": "LabTestResult.json"
+    },
+    {
+      "$ref": "LabTest.json"
+    },
+    {
+      "$ref": "Feedback.json"
+    },
+    {
+      "$ref": "Patient.json"
+    },
+    {
+      "$ref": "PatientPOST.json"
+    },
+    {
+      "$ref": "FeedbackShort.json"
+    },
+    {
+      "$ref": "result_code.json"
+    }
+  ]
+}

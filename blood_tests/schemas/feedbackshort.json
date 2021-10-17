@@ -1,0 +1,27 @@
+{
+  "required": [
+    "id",
+    "package_code"
+  ],
+  "type": "object",
+  "properties": {
+    "id": {
+      "title": "ID",
+      "type": "integer"
+    },
+    "package_code": {
+      "title": "Package code",
+      "minLength": 1,
+      "type": "string"
+    },
+    "result_code": {
+      "$ref": "result_code.json"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string",
+      "nullable": true
+    }
+  },
+  "$schema": "http://json-schema.org/schema#"
+}

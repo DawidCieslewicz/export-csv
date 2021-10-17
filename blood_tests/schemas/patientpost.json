@@ -1,0 +1,49 @@
+{
+  "required": [
+    "date_of_birth",
+    "id_system",
+    "lab_tests",
+    "sex"
+  ],
+  "type": "object",
+  "properties": {
+    "id": {
+      "title": "ID",
+      "type": "integer",
+      "readOnly": true
+    },
+    "id_system": {
+      "title": "Id system",
+      "maxLength": 100,
+      "minLength": 1,
+      "type": "string"
+    },
+    "sex": {
+      "title": "Sex",
+      "type": "string",
+      "enum": [
+        "f",
+        "m"
+      ]
+    },
+    "date_of_birth": {
+      "title": "Date of birth",
+      "type": "string",
+      "format": "date"
+    },
+    "lab_tests": {
+      "type": "array",
+      "items": {
+        "$ref": "LabTest.json"
+      }
+    },
+    "feedback": {
+      "type": "array",
+      "readOnly": true,
+      "items": {
+        "$ref": "FeedbackShort.json"
+      }
+    }
+  },
+  "$schema": "http://json-schema.org/schema#"
+}

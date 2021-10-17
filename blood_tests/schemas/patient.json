@@ -1,0 +1,59 @@
+{
+  "required": [
+    "feedback"
+  ],
+  "type": "object",
+  "properties": {
+    "id": {
+      "title": "ID",
+      "type": "integer",
+      "readOnly": true
+    },
+    "id_system": {
+      "title": "Id system",
+      "minLength": 1,
+      "type": "string",
+      "readOnly": true
+    },
+    "sex": {
+      "title": "Sex",
+      "type": "string",
+      "readOnly": true,
+      "enum": [
+        "f",
+        "m"
+      ]
+    },
+    "date_of_birth": {
+      "title": "Date of birth",
+      "type": "string",
+      "format": "date",
+      "readOnly": true
+    },
+    "lab_tests": {
+      "type": "array",
+      "readOnly": true,
+      "items": {
+        "$ref": "LabTest.json"
+      }
+    },
+    "presentation_link": {
+      "type": "string",
+      "readOnly": true
+    },
+    "feedback": {
+      "type": "array",
+      "items": {
+        "$ref": "Feedback.json"
+      }
+    },
+    "unpaid_feedback": {
+      "type": "array",
+      "items": {
+        "$ref": "FeedbackShort.json"
+      },
+      "readOnly": true
+    }
+  },
+  "$schema": "http://json-schema.org/schema#"
+}

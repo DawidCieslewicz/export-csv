@@ -1,0 +1,54 @@
+{
+  "required": [
+    "marker",
+    "parameter",
+    "unit",
+    "value_numeric"
+  ],
+  "type": "object",
+  "properties": {
+    "parameter": {
+      "title": "Parameter",
+      "maxLength": 100,
+      "minLength": 1,
+      "type": "string"
+    },
+    "unit": {
+      "title": "Unit",
+      "maxLength": 100,
+      "minLength": 1,
+      "type": "string"
+    },
+    "value_numeric": {
+      "title": "Value numeric",
+      "type": "number"
+    },
+    "marker": {
+      "title": "Marker",
+      "type": "string",
+      "enum": [
+        "LL",
+        "L",
+        "N",
+        "H",
+        "HH"
+      ]
+    },
+    "low": {
+      "title": "Low",
+      "type": "number",
+      "nullable": true
+    },
+    "high": {
+      "title": "High",
+      "type": "number",
+      "nullable": true
+    },
+    "value_text": {
+      "title": "Value text",
+      "type": "string",
+      "nullable": true
+    }
+  },
+  "$schema": "http://json-schema.org/schema#"
+}
