@@ -13,7 +13,8 @@ class UploadFileForm(forms.Form):
 def handle_uploaded_file(file: InMemoryUploadedFile):
     csv_file = BloodTestHandler(blood_test_file=file)
 
-    csv_file.handle_request()
+    csv_file.send_blood_test_request()
+
 
 
 def upload_file(request):

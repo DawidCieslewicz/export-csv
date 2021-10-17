@@ -7,8 +7,10 @@ import json
 
 import pandas as pd
 import requests
-from blood_tests.services import blood_test_passed_create, blood_test_rejected_create
+from blood_tests.services import (blood_test_passed_create,
+                                  blood_test_rejected_create)
 from django.conf import settings
+from requests.models import Response
 
 api_key = settings.API_KEY
 
@@ -17,22 +19,32 @@ class BloodTestHandler:
     def __init__(self, blood_test_file) -> None:
         self.blood_test_file = blood_test_file
 
-    def get_dataframe(self) -> pd.DataFrame:
+        if not str(blood_test_file).endswith('.csv'):
+            raise NotImplementedError("Cannot read files other than .csv")
+
+    def get_dataframe(self, file) -> pd.DataFrame:
         """
 
-        Generate and return dataframe from csv file
-
-        Args:
-            file_path (str): full file path
+        Generate dataframe from csv file
 
         Returns:
             pd.DataFrame: dataframe object
         """
-        file_path = self.blood_test_file
-        df = pd.read_csv(
-            file_path,
+
+        df: pd.DataFrame = pd.read_csv(
+            file,
             sep=";",
         )
+
+        df_column_names = df.columns.values.tolist()
+        df_required_columns = ['id', 'parameter', 'unit',
+                               'value_numeric', 'marker', 'low', 'high']
+
+        if not set(df_required_columns) == set(df_column_names):
+            raise NotImplementedError(
+                "Column names does not match required pattern"
+            )
+
         return df
 
     def df_convert(self) -> dict:
@@ -43,14 +55,14 @@ class BloodTestHandler:
             data (pd.DataFrame): Data
 
         Returns:
-            dict:
+            dict: {"patient_id": [results,]}
         """
-        data = self.get_dataframe()
+        data = self.get_dataframe(self.blood_test_file)
 
         user_tests_dict = {}
         for row_dict in data.to_dict(orient="records"):
 
-            current_user = row_dict.pop("id")
+            current_user = str(row_dict.pop("id"))
 
             if not current_user in user_tests_dict.keys():
                 user_tests_dict[current_user] = [
@@ -60,46 +72,64 @@ class BloodTestHandler:
                 user_tests_dict[current_user].append(row_dict)
         return user_tests_dict
 
-    def handle_request(self):
+    def generate_json_data(self, patient_id, results_list):
+        """
+            Create json object that fits api
+        """
+        request_dict = {
+            "id_system": patient_id,
+            "sex": "f",
+            "date_of_birth": "1989-01-01",
+            "lab_tests": [
+                {
+                    "name": "morfologia",
+                    "package_code": "PK001",
+                    "test_date": "2021-07-01",
+                    "lab_test_results": results_list,
+                }
+            ],
+        }
+        json_data = json.dumps(request_dict)
+
+        return json_data
+
+    def handle_request(self, request, response: Response):
+        if response.status_code == 201:
+            response_content_json = json.loads(response.content)
+
+            blood_test_passed_create(
+                request_sent=request,
+                response_http_code=response.status_code,
+                response_time=response.elapsed.total_seconds(),
+                feedback=response_content_json["feedback"],
+            )
+
+        else:
+            blood_test_rejected_create(
+                error_code=response.status_code,
+                response_time=response.elapsed.total_seconds(),
+                request_sent=request,
+                response_data=response.content,
+            )
+
+    def send_blood_test_request(self):
+        """
+            Send request and deal with results
+        """
+        url = "https://bloodlab-demo.appspot.com/v1/diagnosis/"
+
+        headers = {
+            "X-API-KEY": api_key,
+            "Content-Type": "application/json",
+        }
+
         for patient_id, results_list in self.df_convert().items():
 
-            url = "https://bloodlab-demo.appspot.com/v1/diagnosis/"
-            headers = {
-                "X-API-KEY": api_key,
-                "Content-Type": "application/json",
-            }
-
-            request_dict = {
-                "id_system": str(patient_id),
-                "sex": "f",
-                "date_of_birth": "1989-01-01",
-                "lab_tests": [
-                    {
-                        "name": "morfologia",
-                        "package_code": "PK001",
-                        "test_date": "2021-07-01",
-                        "lab_test_results": results_list,
-                    }
-                ],
-            }
-            json_data = json.dumps(request_dict, indent=2)
+            json_data = self.generate_json_data(
+                patient_id=patient_id,
+                results_list=results_list
+            )
 
             r = requests.post(url=url, data=json_data, headers=headers)
 
-            if r.status_code == 201:
-                res_content = json.loads(r.content)
-
-                blood_test_passed_create(
-                    request_sent=json_data,
-                    response_http_code=r.status_code,
-                    response_time=r.elapsed.total_seconds(),
-                    feedback=res_content["feedback"],
-                )
-
-            else:
-                blood_test_rejected_create(
-                    error_code=r.status_code,
-                    response_time=r.elapsed.total_seconds(),
-                    request_sent=json_data,
-                    response_data=str(r.content),
-                )
+            self.handle_request(request=json_data, response=r)
